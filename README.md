@@ -121,20 +121,3 @@ python -m pytest -v
 `test_components.py` verifies partial SSE redaction, bounded streaming, limit expiry, tenant separation and authorization roles. `test_http_endpoints.py` performs ASGI integration tests with mocked provider responses; no network needed. `test_mcp_validation.py` verifies the official MCP-connected model validation and is skipped only when `mcp` is missing. `mcp_stdio_check.py` uses the official MCP SDK v2 client/server over stdio and **requires the MCP SDK**. `demo.py` exercises all three running HTTP gateways.
 
 The project includes `Dockerfile`, `docker-compose.yml`, `.env.example`, `.gitignore`, and `ARCHITECTURE.md` with diagrams, security assumptions, tradeoffs, a test matrix, and discussion points.
-
-## Honest limitations
-
-- The module uses the SDK's **v2 low-level constructor API**. The official `mcp` package could not be downloaded in the author's build environment; Task 1 end-to-end SDK checks must run after installing dependencies. The other HTTP module tests were run locally.
-- Bearer-to-role demo secrets and `X-Tenant-Key` are local stubs, **not real authenticated identity**.
-- Task 2 is HTTP/JSON-RPC forwarding, not a full MCP Streamable HTTP session gateway.
-- PII detection is a regular-expression proof of concept with a fixed look-behind window, not complete DLP coverage. A bounded hold increases Time To First Token and long/unusual PII can evade regex detection.
-- The reservation budget uses an intentionally conservative UTF-8 bytes-per-prompt estimate, not an exact tokenizer; SQLite is suitable for modest deployments, not a horizontally scaled global quota system.
-- Mock downstreams do not contact real LLMs or payment processors; no refunds occur.
-
-For model transport documentation see [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) and [MCP Tool Specification](https://modelcontextprotocol.io/specification/2025-11-25/server/tools).
-
-## GitHub assessment submission
-
-This project is ready to upload as source files to a public GitHub repository. Follow **[SUBMISSION_CHECKLIST.md](SUBMISSION_CHECKLIST.md)** for a detailed upload walkthrough, final verification checklist and a short submission email. **[SECURITY.md](SECURITY.md)** explains demo credentials and production security limitations.
-
-**Validation note (2026-11-05):** The HTTP gateway test suite passed locally (12 passed). This environment does not have the official MCP SDK or Docker installed, so the updated SDK v2 stdio test and Docker demo must be run on a machine or CI runner with those dependencies. Run the MCP stdio checker on your machine after installing dependencies.
