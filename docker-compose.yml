@@ -1,0 +1,33 @@
+services:
+  mock:
+    build: .
+    command: uvicorn mock_provider:app --host 0.0.0.0 --port 9000
+    ports: ["127.0.0.1:9000:9000"]
+  mcp-gateway:
+    build: .
+    command: uvicorn security_gateway:app --host 0.0.0.0 --port 8001
+    environment:
+      MCP_DOWNSTREAM: http://mock:9000/mcp
+      DEMO_ADMIN_TOKEN: ${DEMO_ADMIN_TOKEN:-local-admin-change-me}
+      DEMO_VIEWER_TOKEN: ${DEMO_VIEWER_TOKEN:-local-viewer-change-me}
+    ports: ["127.0.0.1:8001:8001"]
+    depends_on: [mock]
+  stream-gateway:
+    build: .
+    command: uvicorn stream_guardrail:app --host 0.0.0.0 --port 8002
+    environment:
+      STREAM_PROVIDER_URL: http://mock:9000/stream
+    ports: ["127.0.0.1:8002:8002"]
+    depends_on: [mock]
+  router:
+    build: .
+    command: uvicorn model_router:app --host 0.0.0.0 --port 8003
+    environment:
+      PRIMARY_LLM_URL: http://mock:9000/primary429
+      SECONDARY_LLM_URL: http://mock:9000/complete
+      RATE_DB_PATH: /data/gateway_rate_limit.sqlite3
+    volumes: ["rate-data:/data"]
+    ports: ["127.0.0.1:8003:8003"]
+    depends_on: [mock]
+volumes:
+  rate-data:
